@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="আমল ট্র্যাকার"/>
+  <meta name="theme-color" content="#0a1628"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <title>আমল ট্র্যাকার</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{background:#0a1628;font-family:'Hind Siliguri',sans-serif;color:#f1f5f9;min-height:100vh;overflow-x:hidden;}
+    input,button,select,textarea{font-family:'Hind Siliguri',sans-serif;}
+    input::placeholder,textarea::placeholder{color:#475569;}
+
+    /* ── HEADER ── */
+    .header{background:linear-gradient(160deg,#0f2240,#1a3a5c);padding:env(safe-area-inset-top,16px) 16px 0;border-bottom:1px solid #1e3a5f;position:sticky;top:0;z-index:100;}
+    .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:6px;}
+    .app-title{font-size:20px;font-weight:800;background:linear-gradient(90deg,#c9a84c,#f0d080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .app-arabic{font-size:13px;color:#8aab8a;margin-top:1px;letter-spacing:1px;}
+    .date-chip{background:#1e3a5f;border-radius:10px;padding:6px 11px;font-size:11px;color:#c9a84c;font-weight:600;text-align:right;}
+    .tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{flex-shrink:0;padding:10px 10px;background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;color:#64748b;font-weight:500;font-size:11px;transition:all 0.2s;font-family:'Hind Siliguri',sans-serif;white-space:nowrap;}
+    .tab-btn.active{border-bottom-color:#c9a84c;color:#c9a84c;font-weight:700;}
+    .tab-icon{font-size:16px;display:block;margin-bottom:2px;}
+
+    /* ── LAYOUT ── */
+    .content{max-width:480px;margin:0 auto;padding:16px 14px 100px;}
+    .section{display:none;}
+    .section.active{display:block;}
+
+    /* ── CARDS ── */
+    .card{background:#0f2240;border-radius:14px;padding:16px;border:1px solid #1e3a5f;margin-bottom:12px;}
+    .card-gold{background:linear-gradient(135deg,#0f2240,#1a3a5c);border-radius:16px;padding:18px;border:1px solid #c9a84c44;margin-bottom:14px;}
+    .section-title{color:#c9a84c;font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+    /* ── INPUTS ── */
+    .input{background:#1e3a5f;border:1px solid #2a4a6f;border-radius:10px;padding:11px 13px;color:#f1f5f9;font-size:14px;width:100%;outline:none;}
+    .input:focus{border-color:#c9a84c;}
+    .btn-gold{background:linear-gradient(135deg,#c9a84c,#b8953a);border:none;border-radius:10px;padding:11px 16px;color:#0a1628;font-weight:700;cursor:pointer;font-size:13px;}
+    .btn-sm{background:#1e3a5f;border:none;border-radius:8px;padding:7px 12px;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;}
+    .btn-sm.active{background:#c9a84c22;color:#c9a84c;border:1px solid #c9a84c55;}
+    .del-btn{background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:2px 5px;}
+
+    /* ── NAMAZ ── */
+    .namaz-grid{display:flex;flex-direction:column;gap:10px;}
+    .namaz-row{background:#0f2240;border-radius:12px;padding:14px;border:1px solid #1e3a5f;}
+    .namaz-name{color:#e2e8f0;font-weight:700;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+    .namaz-name-ar{color:#8aab8a;font-size:12px;font-weight:400;}
+    .status-row{display:flex;gap:6px;}
+    .status-btn{flex:1;padding:9px 4px;border-radius:8px;border:1px solid #2a4a6f;background:#1e3a5f;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;}
+    .status-btn.jamaat{background:#22c55e22;border-color:#22c55e55;color:#22c55e;}
+    .status-btn.single{background:#f59e0b22;border-color:#f59e0b55;color:#f59e0b;}
+    .status-btn.qaza{background:#ef444422;border-color:#ef444455;color:#ef4444;}
+    .status-btn.selected-jamaat{background:#22c55e;border-color:#22c55e;color:#fff;}
+    .status-btn.selected-single{background:#f59e0b;border-color:#f59e0b;color:#0a1628;}
+    .status-btn.selected-qaza{background:#ef4444;border-color:#ef4444;color:#fff;}
+
+    /* ── PROGRESS SUMMARY ── */
+    .namaz-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+    .ns-card{background:#0f2240;border-radius:12px;padding:12px 8px;border:1px solid #1e3a5f;text-align:center;}
+    .ns-val{font-size:20px;font-weight:800;margin-bottom:2px;}
+    .ns-label{color:#64748b;font-size:10px;}
+
+    /* ── QURAN ── */
+    .quran-log-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;}
+    .quran-field{flex:1;display:flex;flex-direction:column;gap:4px;}
+    .quran-field label{color:#64748b;font-size:11px;}
+    .quran-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+    .qstat{background:#0f2240;border-radius:12px;padding:12px;border:1px solid #1e3a5f;text-align:center;}
+    .qstat-val{font-size:18px;font-weight:800;color:#c9a84c;}
+    .qstat-label{color:#64748b;font-size:10px;margin-top:2px;}
+    .type-chip{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;}
+
+    /* ── TASBEEH ── */
+    .tasbeeh-counter{text-align:center;padding:20px 0;}
+    .tasbeeh-arabic{font-size:28px;color:#c9a84c;font-weight:700;margin-bottom:6px;letter-spacing:2px;}
+    .tasbeeh-bn{color:#94a3b8;font-size:13px;margin-bottom:20px;}
+    .counter-display{font-size:64px;font-weight:800;color:#f1f5f9;line-height:1;margin-bottom:20px;}
+    .counter-target{color:#64748b;font-size:13px;margin-bottom:24px;}
+    .counter-btn{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#c9a84c,#b8953a);border:none;color:#0a1628;font-size:32px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px #c9a84c44;}
+    .counter-reset{background:#1e3a5f;border:none;border-radius:10px;padding:10px 20px;color:#94a3b8;cursor:pointer;font-size:13px;margin-top:14px;}
+    .tasbeeh-list{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+    .tasbeeh-chip{background:#1e3a5f;border:1px solid #2a4a6f;border-radius:10px;padding:8px 14px;font-size:12px;color:#94a3b8;cursor:pointer;transition:all 0.15s;}
+    .tasbeeh-chip.active{background:#c9a84c22;border-color:#c9a84c;color:#c9a84c;}
+
+    /* ── SADAQA ── */
+    .sadaqa-total{font-size:28px;font-weight:800;color:#c9a84c;text-align:center;margin:10px 0 4px;}
+    .sadaqa-month{color:#64748b;font-size:12px;text-align:center;margin-bottom:16px;}
+
+    /* ── OTHER AMAL ── */
+    .amal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+    .amal-card{background:#0f2240;border-radius:12px;padding:14px;border:1px solid #1e3a5f;text-align:center;cursor:pointer;transition:all 0.2s;}
+    .amal-card.done{border-color:#c9a84c;background:#c9a84c11;}
+    .amal-icon{font-size:28px;margin-bottom:6px;}
+    .amal-name{color:#e2e8f0;font-size:12px;font-weight:600;margin-bottom:4px;}
+    .amal-count{color:#64748b;font-size:11px;}
+    .amal-card.done .amal-name{color:#c9a84c;}
+
+    /* ── MONTH NAV ── */
+    .month-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .month-title{color:#f1f5f9;font-weight:700;font-size:15px;}
+    .nav-btn{background:#1e3a5f;border:none;border-radius:8px;width:32px;height:32px;color:#94a3b8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+    /* ── HISTORY ── */
+    .history-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e3a5f;}
+    .history-row:last-child{border-bottom:none;}
+
+    /* ── COMPLETION BAR ── */
+    .bar-bg{background:#1e3a5f;border-radius:99px;height:6px;overflow:hidden;margin-top:6px;}
+    .bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#c9a84c,#f0d080);transition:width 0.5s;}
+
+    /* ── CALENDAR (for namaz history) ── */
+    .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px;}
+    .cal-day-lbl{text-align:center;color:#475569;font-size:9px;padding:3px 0;}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+    .cal-cell{aspect-ratio:1;border-radius:5px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-size:10px;color:#64748b;cursor:pointer;position:relative;}
+    .cal-cell.empty-cell{background:transparent;}
+    .cal-cell.full{background:#22c55e;color:#fff;font-weight:700;}
+    .cal-cell.partial{background:#f59e0b;color:#0a1628;font-weight:700;}
+    .cal-cell.today-cell{outline:2px solid #c9a84c;}
+    .cal-cell.future{opacity:0.3;cursor:default;}
+
+    .empty-state{text-align:center;color:#475569;padding:32px 20px;}
+    .empty-icon{font-size:36px;margin-bottom:10px;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="app-title">আমল ট্র্যাকার</div>
+      <div class="app-arabic">مُتَابَعَةُ الْأَعْمَال</div>
+    </div>
+    <div class="date-chip" id="headerDate"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('namaz')"><span class="tab-icon">🕌</span>নামাজ</button>
+    <button class="tab-btn" onclick="switchTab('quran')"><span class="tab-icon">📖</span>কুরআন</button>
+    <button class="tab-btn" onclick="switchTab('tasbeeh')"><span class="tab-icon">📿</span>তাসবিহ</button>
+    <button class="tab-btn" onclick="switchTab('sadaqa')"><span class="tab-icon">💚</span>সাদাকা</button>
+    <button class="tab-btn" onclick="switchTab('amal')"><span class="tab-icon">✨</span>আমল</button>
+    <button class="tab-btn" onclick="switchTab('report')"><span class="tab-icon">📊</span>রিপোর্ট</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══════════ NAMAZ ══════════ -->
+  <div id="section-namaz" class="section active">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeDay(-1)">‹</button>
+      <div class="month-title" id="namazDayTitle"></div>
+      <button class="nav-btn" id="namazNextBtn" onclick="changeDay(1)">›</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="namaz-summary" id="namazSummary"></div>
+
+    <!-- 5 Waqt -->
+    <div class="namaz-grid" id="namazGrid"></div>
+  </div>
+
+  <!-- ══════════ QURAN ══════════ -->
+  <div id="section-quran" class="section">
+    <!-- Stats -->
+    <div class="quran-stat-grid" id="quranStats"></div>
+
+    <!-- Log today -->
+    <div class="card-gold">
+      <div class="section-title">📖 আজকের তিলাওয়াত লগ করুন</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div class="quran-field">
+          <label>আয়াত সংখ্যা</label>
+          <input class="input" id="q_ayat" type="number" placeholder="যেমন: ২০"/>
+        </div>
+        <div class="quran-field">
+          <label>সময় (মিনিট)</label>
+          <input class="input" id="q_time" type="number" placeholder="যেমন: ৩০"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <div style="color:#64748b;font-size:11px;margin-bottom:6px;">ধরন (একাধিক বাছাই করতে পারো)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="quranTypeRow">
+          <button class="btn-sm" onclick="toggleQType(this,'তিলাওয়াত')">তিলাওয়াত</button>
+          <button class="btn-sm" onclick="toggleQType(this,'অর্থ')">অর্থ পড়া</button>
+          <button class="btn-sm" onclick="toggleQType(this,'তাফসির')">তাফসির</button>
+          <button class="btn-sm" onclick="toggleQType(this,'হিফয')">হিফয</button>
+        </div>
+      </div>
+
+      <input class="input" id="q_note" placeholder="নোট (ঐচ্ছিক)..." style="margin-bottom:10px;"/>
+      <button class="btn-gold" style="width:100%;" onclick="addQuranLog()">লগ যোগ করুন</button>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <div class="section-title">📋 ইতিহাস</div>
+      <div id="quranHistory"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ TASBEEH ══════════ -->
+  <div id="section-tasbeeh" class="section">
+    <!-- Tasbeeh selector -->
+    <div class="card">
+      <div class="section-title">📿 তাসবিহ বাছাই করুন</div>
+      <div class="tasbeeh-list" id="tasbeehList"></div>
+    </div>
+
+    <!-- Counter -->
+    <div class="card-gold">
+      <div class="tasbeeh-counter">
+        <div class="tasbeeh-arabic" id="tasbeehArabic">سُبْحَانَ اللّٰهِ</div>
+        <div class="tasbeeh-bn" id="tasbeehBn">সুবহানাল্লাহ</div>
+        <div class="counter-display" id="counterDisplay">0</div>
+        <div class="counter-target" id="counterTarget">লক্ষ্য: ৩৩</div>
+        <button class="counter-btn" onclick="incrementCounter()">+</button>
+        <br/>
+        <button class="counter-reset" onclick="resetCounter()">রিসেট করুন</button>
+      </div>
+    </div>
+
+    <!-- Today's tasbeeh log -->
+    <div class="card">
+      <div class="section-title">আজকের তাসবিহ</div>
+      <div id="tasbeehTodayLog"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SADAQA ══════════ -->
+  <div id="section-sadaqa" class="section">
+    <!-- This month total -->
+    <div class="card-gold" style="text-align:center;">
+      <div style="color:#8aab8a;font-size:12px;">এই মাসের সাদাকা</div>
+      <div class="sadaqa-total" id="sadaqaMonthTotal">৳০</div>
+      <div class="bar-bg" style="margin:0 auto;max-width:200px;">
+        <div class="bar-fill" id="sadaqaBar" style="width:0%"></div>
+      </div>
+      <div style="color:#64748b;font-size:11px;margin-top:6px;">সর্বমোট: <span id="sadaqaAllTotal" style="color:#c9a84c;font-weight:700;">৳০</span></div>
+    </div>
+
+    <!-- Add -->
+    <div class="card">
+      <div class="section-title">💚 নতুন সাদাকা যোগ করুন</div>
+      <input class="input" id="sadaqa_amount" type="number" placeholder="পরিমাণ (৳)" style="margin-bottom:9px;"/>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px;" id="sadaqaTypeRow">
+        <button class="btn-sm" onclick="toggleSType(this,'নগদ')">নগদ</button>
+        <button class="btn-sm" onclick="toggleSType(this,'খাদ্য')">খাদ্য</button>
+        <button class="btn-sm" onclick="toggleSType(this,'বিকাশ')">বিকাশ</button>
+        <button class="btn-sm" onclick="toggleSType(this,'অন্যান্য')">অন্যান্য</button>
+      </div>
+      <input class="input" id="sadaqa_note" placeholder="কাকে/কোথায় দিলেন..." style="margin-bottom:10px;"/>
+      <button class="btn-gold" style="width:100%;" onclick="addSadaqa()">যোগ করুন</button>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <div class="section-title">📋 সাদাকার ইতিহাস</div>
+      <div id="sadaqaHistory"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ OTHER AMAL ══════════ -->
+  <div id="section-amal" class="section">
+    <div style="color:#64748b;font-size:12px;margin-bottom:12px;text-align:center;">আজকের আমল — tap করে mark করুন</div>
+    <div class="amal-grid" id="amalGrid"></div>
+
+    <!-- Custom amal -->
+    <div class="card" style="margin-top:12px;">
+      <div class="section-title">➕ নতুন আমল যোগ করুন</div>
+      <div style="display:flex;gap:8px;">
+        <input class="input" id="customAmalInput" placeholder="আমলের নাম..."/>
+        <button class="btn-gold" style="padding:11px 14px;" onclick="addCustomAmal()">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ REPORT ══════════ -->
+  <div id="section-report" class="section">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeReportMonth(-1)">‹</button>
+      <div class="month-title" id="reportMonthTitle"></div>
+      <button class="nav-btn" id="reportNextBtn" onclick="changeReportMonth(1)">›</button>
+    </div>
+    <div id="reportContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ──────────────────────────────────────────────────
+// CONSTANTS
+// ──────────────────────────────────────────────────
+const BN_MONTHS=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const BN_MONTHS_S=['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্ট','অক্টো','নভে','ডিসে'];
+const DAY_LABELS=['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'];
+const BN_DAYS=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+
+const WAQT = [
+  {id:'fajr',   name:'ফজর',    ar:'الفجر'},
+  {id:'zuhr',   name:'যোহর',   ar:'الظهر'},
+  {id:'asr',    name:'আসর',    ar:'العصر'},
+  {id:'maghrib',name:'মাগরিব', ar:'المغرب'},
+  {id:'isha',   name:'এশা',    ar:'العشاء'},
+];
+
+const TASBEEH_LIST = [
+  {id:'subhan', ar:'سُبْحَانَ اللّٰهِ',      bn:'সুবহানাল্লাহ',     target:33},
+  {id:'alham',  ar:'اَلْحَمْدُ لِلّٰهِ',      bn:'আলহামদুলিল্লাহ',  target:33},
+  {id:'allahu', ar:'اَللّٰهُ أَكْبَرُ',        bn:'আল্লাহু আকবার',   target:33},
+  {id:'istigh', ar:'أَسْتَغْفِرُ اللّٰهَ',     bn:'আস্তাগফিরুল্লাহ', target:100},
+  {id:'darood', ar:'صَلَّى اللّٰهُ عَلَيْهِ',  bn:'দরুদ শরীফ',       target:100},
+  {id:'lailaha',ar:'لَا إِلٰهَ إِلَّا اللّٰهُ',bn:'লা-ইলাহা ইল্লাল্লাহ',target:100},
+];
+
+const DEFAULT_AMAL = [
+  {id:'dua',      icon:'🤲', name:'দুআ',           done:false},
+  {id:'istighfar',icon:'💧', name:'ইস্তিগফার',     done:false},
+  {id:'darood',   icon:'🌙', name:'দরুদ পড়া',      done:false},
+  {id:'fasting',  icon:'🌙', name:'নফল রোজা',      done:false},
+  {id:'tahajjud', icon:'⭐', name:'তাহাজ্জুদ',     done:false},
+  {id:'witr',     icon:'🕯', name:'বিতর নামাজ',    done:false},
+];
+
+// ──────────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────────
+function loadState() {
+  return {
+    namazLogs:   JSON.parse(localStorage.getItem('a_namaz')||'{}'),
+    quranLogs:   JSON.parse(localStorage.getItem('a_quran')||'[]'),
+    tasbeehLogs: JSON.parse(localStorage.getItem('a_tasbeeh')||'{}'),
+    sadaqaLogs:  JSON.parse(localStorage.getItem('a_sadaqa')||'[]'),
+    amalDefs:    JSON.parse(localStorage.getItem('a_amaldefs')||JSON.stringify(DEFAULT_AMAL)),
+    amalLogs:    JSON.parse(localStorage.getItem('a_amallogs')||'{}'),
+    counter:     JSON.parse(localStorage.getItem('a_counter')||'{"id":"subhan","count":0}'),
+  };
+}
+let S = loadState();
+
+function save() {
+  localStorage.setItem('a_namaz',    JSON.stringify(S.namazLogs));
+  localStorage.setItem('a_quran',    JSON.stringify(S.quranLogs));
+  localStorage.setItem('a_tasbeeh',  JSON.stringify(S.tasbeehLogs));
+  localStorage.setItem('a_sadaqa',   JSON.stringify(S.sadaqaLogs));
+  localStorage.setItem('a_amaldefs', JSON.stringify(S.amalDefs));
+  localStorage.setItem('a_amallogs', JSON.stringify(S.amalLogs));
+  localStorage.setItem('a_counter',  JSON.stringify(S.counter));
+}
+
+// ──────────────────────────────────────────────────
+// DATE UTILS
+// ──────────────────────────────────────────────────
+const now0 = new Date(); now0.setHours(0,0,0,0);
+let viewDate = new Date(now0);
+let reportYear = now0.getFullYear();
+let reportMonth = now0.getMonth();
+let selectedQTypes = [];
+let selectedSType = 'নগদ';
+
+function ds(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function todayDs(){ return ds(new Date()); }
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function firstDay(y,m){ return new Date(y,m,1).getDay(); }
+function isFuture(d){ const t=new Date();t.setHours(0,0,0,0);return d>t; }
+
+// ──────────────────────────────────────────────────
+// TAB
+// ──────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['namaz','quran','tasbeeh','sadaqa','amal','report'][i]===tab);
+  });
+  if(tab==='namaz') renderNamaz();
+  else if(tab==='quran') renderQuran();
+  else if(tab==='tasbeeh') renderTasbeeh();
+  else if(tab==='sadaqa') renderSadaqa();
+  else if(tab==='amal') renderAmal();
+  else if(tab==='report') renderReport();
+}
+
+// ──────────────────────────────────────────────────
+// NAMAZ
+// ──────────────────────────────────────────────────
+function changeDay(dir){
+  const next = new Date(viewDate);
+  next.setDate(next.getDate()+dir);
+  if(dir>0 && next>now0) return;
+  viewDate=next;
+  renderNamaz();
+}
+
+function setNamazStatus(waqtId, status) {
+  const d = ds(viewDate);
+  if(!S.namazLogs[d]) S.namazLogs[d]={};
+  if(S.namazLogs[d][waqtId]===status) delete S.namazLogs[d][waqtId];
+  else S.namazLogs[d][waqtId]=status;
+  save(); renderNamaz();
+}
+
+function renderNamaz() {
+  const d = ds(viewDate);
+  const isToday = d===todayDs();
+  const dayName = BN_DAYS[viewDate.getDay()];
+  const dateLabel = `${viewDate.getDate()} ${BN_MONTHS_S[viewDate.getMonth()]} — ${dayName}`;
+  document.getElementById('namazDayTitle').textContent = dateLabel;
+  document.getElementById('namazNextBtn').style.opacity = isToday?'0.3':'1';
+  document.getElementById('namazNextBtn').style.pointerEvents = isToday?'none':'auto';
+
+  const logs = S.namazLogs[d]||{};
+  let jamaat=0, single=0, qaza=0;
+  WAQT.forEach(w=>{
+    if(logs[w.id]==='jamaat') jamaat++;
+    else if(logs[w.id]==='single') single++;
+    else if(logs[w.id]==='qaza') qaza++;
+  });
+  const total=jamaat+single+qaza;
+
+  document.getElementById('namazSummary').innerHTML=`
+    <div class="ns-card"><div class="ns-val" style="color:#22c55e">${jamaat}</div><div class="ns-label">জামাতে</div></div>
+    <div class="ns-card"><div class="ns-val" style="color:#f59e0b">${single}</div><div class="ns-label">একাকী</div></div>
+    <div class="ns-card"><div class="ns-val" style="color:#ef4444">${qaza}</div><div class="ns-label">কাজা</div></div>
+  `;
+
+  document.getElementById('namazGrid').innerHTML = WAQT.map(w=>{
+    const status=logs[w.id]||'';
+    return `
+      <div class="namaz-row">
+        <div class="namaz-name">
+          ${w.name} <span class="namaz-name-ar">${w.ar}</span>
+        </div>
+        <div class="status-row">
+          <button class="status-btn ${status==='jamaat'?'selected-jamaat':'jamaat'}" onclick="setNamazStatus('${w.id}','jamaat')">🕌 জামাত</button>
+          <button class="status-btn ${status==='single'?'selected-single':'single'}" onclick="setNamazStatus('${w.id}','single')">🧎 একাকী</button>
+          <button class="status-btn ${status==='qaza'?'selected-qaza':'qaza'}" onclick="setNamazStatus('${w.id}','qaza')">⏰ কাজা</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ──────────────────────────────────────────────────
+// QURAN
+// ──────────────────────────────────────────────────
+function toggleQType(btn, type) {
+  if(selectedQTypes.includes(type)) {
+    selectedQTypes=selectedQTypes.filter(t=>t!==type);
+    btn.classList.remove('active');
+  } else {
+    selectedQTypes.push(type);
+    btn.classList.add('active');
+  }
+}
+
+function addQuranLog() {
+  const ayat=Number(document.getElementById('q_ayat').value)||0;
+  const time=Number(document.getElementById('q_time').value)||0;
+  const note=document.getElementById('q_note').value.trim();
+  if(!ayat && !time) return;
+  S.quranLogs.unshift({id:Date.now(), date:todayDs(), ayat, time, types:selectedQTypes.slice(), note});
+  document.getElementById('q_ayat').value='';
+  document.getElementById('q_time').value='';
+  document.getElementById('q_note').value='';
+  selectedQTypes=[];
+  document.querySelectorAll('#quranTypeRow .btn-sm').forEach(b=>b.classList.remove('active'));
+  save(); renderQuran();
+}
+
+function removeQuranLog(id){
+  S.quranLogs=S.quranLogs.filter(l=>l.id!==id);
+  save(); renderQuran();
+}
+
+function renderQuran() {
+  const totalAyat=S.quranLogs.reduce((a,l)=>a+l.ayat,0);
+  const totalTime=S.quranLogs.reduce((a,l)=>a+l.time,0);
+  const today=S.quranLogs.filter(l=>l.date===todayDs());
+  const todayAyat=today.reduce((a,l)=>a+l.ayat,0);
+  const todayTime=today.reduce((a,l)=>a+l.time,0);
+
+  document.getElementById('quranStats').innerHTML=`
+    <div class="qstat"><div class="qstat-val">${todayAyat}</div><div class="qstat-label">আজকের আয়াত</div></div>
+    <div class="qstat"><div class="qstat-val">${todayTime} মি.</div><div class="qstat-label">আজকের সময়</div></div>
+    <div class="qstat"><div class="qstat-val">${totalAyat}</div><div class="qstat-label">মোট আয়াত</div></div>
+    <div class="qstat"><div class="qstat-val">${Math.round(totalTime/60)} ঘ.</div><div class="qstat-label">মোট সময়</div></div>
+  `;
+
+  const hist=document.getElementById('quranHistory');
+  if(!S.quranLogs.length){hist.innerHTML=`<div class="empty-state"><div class="empty-icon">📖</div>কোনো লগ নেই</div>`;return;}
+  hist.innerHTML=S.quranLogs.slice(0,20).map(l=>`
+    <div class="history-row">
+      <div>
+        <div style="color:#e2e8f0;font-size:13px;">${l.ayat?l.ayat+' আয়াত':''} ${l.time?l.time+' মিনিট':''}</div>
+        <div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;">
+          ${l.types.map(t=>`<span class="type-chip" style="background:#c9a84c22;color:#c9a84c">${t}</span>`).join('')}
+          <span style="color:#475569;font-size:10px;">${l.date}</span>
+        </div>
+        ${l.note?`<div style="color:#64748b;font-size:11px;margin-top:2px;">${l.note}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="removeQuranLog(${l.id})">×</button>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────────
+// TASBEEH
+// ──────────────────────────────────────────────────
+function selectTasbeeh(id) {
+  // Save current count before switching
+  const cur=S.counter;
+  if(cur.count>0) saveTasbeehLog(cur.id, cur.count);
+  S.counter={id, count:0};
+  save(); renderTasbeeh();
+}
+
+function incrementCounter() {
+  S.counter.count++;
+  document.getElementById('counterDisplay').textContent=S.counter.count;
+  const t=TASBEEH_LIST.find(t=>t.id===S.counter.id);
+  if(t && S.counter.count===t.target) {
+    // Save automatically at target
+    saveTasbeehLog(S.counter.id, S.counter.count);
+    S.counter.count=0;
+    document.getElementById('counterDisplay').textContent='0';
+    save(); renderTasbeehTodayLog();
+  } else {
+    save();
+  }
+}
+
+function resetCounter() {
+  S.counter.count=0;
+  document.getElementById('counterDisplay').textContent='0';
+  save();
+}
+
+function saveTasbeehLog(id, count) {
+  const today=todayDs();
+  if(!S.tasbeehLogs[today]) S.tasbeehLogs[today]={};
+  S.tasbeehLogs[today][id]=(S.tasbeehLogs[today][id]||0)+count;
+  save();
+}
+
+function renderTasbeeh() {
+  const list=document.getElementById('tasbeehList');
+  list.innerHTML=TASBEEH_LIST.map(t=>`
+    <div class="tasbeeh-chip ${S.counter.id===t.id?'active':''}" onclick="selectTasbeeh('${t.id}')">
+      ${t.bn}
+    </div>
+  `).join('');
+
+  const cur=TASBEEH_LIST.find(t=>t.id===S.counter.id)||TASBEEH_LIST[0];
+  document.getElementById('tasbeehArabic').textContent=cur.ar;
+  document.getElementById('tasbeehBn').textContent=cur.bn;
+  document.getElementById('counterDisplay').textContent=S.counter.count;
+  document.getElementById('counterTarget').textContent=`লক্ষ্য: ${cur.target}`;
+  renderTasbeehTodayLog();
+}
+
+function renderTasbeehTodayLog() {
+  const today=todayDs();
+  const logs=S.tasbeehLogs[today]||{};
+  const el=document.getElementById('tasbeehTodayLog');
+  const entries=TASBEEH_LIST.filter(t=>logs[t.id]);
+  if(!entries.length){el.innerHTML=`<div style="color:#475569;font-size:12px;text-align:center;padding:10px;">এখনো কোনো তাসবিহ সম্পন্ন হয়নি</div>`;return;}
+  el.innerHTML=entries.map(t=>`
+    <div class="history-row">
+      <div style="color:#e2e8f0;font-size:13px;">${t.bn}</div>
+      <div style="color:#c9a84c;font-weight:700;">${logs[t.id]} বার</div>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────────
+// SADAQA
+// ──────────────────────────────────────────────────
+function toggleSType(btn, type) {
+  document.querySelectorAll('#sadaqaTypeRow .btn-sm').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedSType=type;
+}
+
+function addSadaqa() {
+  const amt=Number(document.getElementById('sadaqa_amount').value);
+  const note=document.getElementById('sadaqa_note').value.trim();
+  if(!amt) return;
+  S.sadaqaLogs.unshift({id:Date.now(), date:todayDs(), amount:amt, type:selectedSType, note});
+  document.getElementById('sadaqa_amount').value='';
+  document.getElementById('sadaqa_note').value='';
+  save(); renderSadaqa();
+}
+
+function removeSadaqa(id){
+  S.sadaqaLogs=S.sadaqaLogs.filter(l=>l.id!==id);
+  save(); renderSadaqa();
+}
+
+function renderSadaqa() {
+  const tn=new Date();
+  const curMonth=`${tn.getFullYear()}-${String(tn.getMonth()+1).padStart(2,'0')}`;
+  const monthTotal=S.sadaqaLogs.filter(l=>l.date.startsWith(curMonth)).reduce((a,l)=>a+l.amount,0);
+  const allTotal=S.sadaqaLogs.reduce((a,l)=>a+l.amount,0);
+  const pct=allTotal?Math.min(100,Math.round(monthTotal/allTotal*100)):0;
+
+  document.getElementById('sadaqaMonthTotal').textContent=`৳${monthTotal.toLocaleString()}`;
+  document.getElementById('sadaqaAllTotal').textContent=`৳${allTotal.toLocaleString()}`;
+  document.getElementById('sadaqaBar').style.width=pct+'%';
+
+  const hist=document.getElementById('sadaqaHistory');
+  if(!S.sadaqaLogs.length){hist.innerHTML=`<div class="empty-state"><div class="empty-icon">💚</div>কোনো সাদাকা লগ নেই</div>`;return;}
+  hist.innerHTML=S.sadaqaLogs.slice(0,30).map(l=>`
+    <div class="history-row">
+      <div>
+        <div style="color:#e2e8f0;font-size:13px;">${l.note||'সাদাকা'} <span style="background:#c9a84c22;color:#c9a84c;border-radius:5px;padding:1px 6px;font-size:10px;">${l.type}</span></div>
+        <div style="color:#475569;font-size:10px;margin-top:2px;">${l.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:#22c55e;font-weight:700;">৳${l.amount.toLocaleString()}</span>
+        <button class="del-btn" onclick="removeSadaqa(${l.id})">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────────
+// OTHER AMAL
+// ──────────────────────────────────────────────────
+function addCustomAmal() {
+  const inp=document.getElementById('customAmalInput');
+  if(!inp.value.trim()) return;
+  S.amalDefs.push({id:'custom_'+Date.now(), icon:'⭐', name:inp.value.trim(), done:false, custom:true});
+  inp.value='';
+  save(); renderAmal();
+}
+
+function toggleAmal(id) {
+  const today=todayDs();
+  if(!S.amalLogs[today]) S.amalLogs[today]={};
+  S.amalLogs[today][id]=!S.amalLogs[today][id];
+  save(); renderAmal();
+}
+
+function removeCustomAmal(id) {
+  S.amalDefs=S.amalDefs.filter(a=>a.id!==id);
+  save(); renderAmal();
+}
+
+function renderAmal() {
+  const today=todayDs();
+  const logs=S.amalLogs[today]||{};
+  document.getElementById('amalGrid').innerHTML=S.amalDefs.map(a=>`
+    <div class="amal-card ${logs[a.id]?'done':''}" onclick="toggleAmal('${a.id}')">
+      <div class="amal-icon">${a.icon}</div>
+      <div class="amal-name">${a.name}</div>
+      <div class="amal-count">${logs[a.id]?'✅ সম্পন্ন':'—'}</div>
+      ${a.custom?`<button onclick="event.stopPropagation();removeCustomAmal('${a.id}')" style="position:absolute;top:6px;right:6px;background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">×</button>`:''}
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────────
+// REPORT
+// ──────────────────────────────────────────────────
+function changeReportMonth(dir){
+  reportMonth+=dir;
+  if(reportMonth>11){reportMonth=0;reportYear++;}
+  if(reportMonth<0){reportMonth=11;reportYear--;}
+  renderReport();
+}
+
+function renderReport(){
+  const tn=new Date();
+  const isCur=(reportYear===tn.getFullYear()&&reportMonth===tn.getMonth());
+  document.getElementById('reportMonthTitle').textContent=`${BN_MONTHS[reportMonth]} ${reportYear}`;
+  document.getElementById('reportNextBtn').style.opacity=isCur?'0.3':'1';
+  document.getElementById('reportNextBtn').style.pointerEvents=isCur?'none':'auto';
+
+  const days=daysInMonth(reportYear,reportMonth);
+  const first=firstDay(reportYear,reportMonth);
+
+  // Namaz calendar
+  let namazCells='';
+  for(let i=0;i<first;i++) namazCells+=`<div class="cal-cell empty-cell"></div>`;
+  for(let d=1;d<=days;d++){
+    const date=new Date(reportYear,reportMonth,d);
+    const dstr=`${reportYear}-${String(reportMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const logs=S.namazLogs[dstr]||{};
+    const count=Object.keys(logs).length;
+    const future=isFuture(date);
+    const isToday=dstr===todayDs();
+    let cls='cal-cell';
+    if(future) cls+=' future';
+    else if(count===5) cls+=' full';
+    else if(count>=3) cls+=' partial';
+    if(isToday) cls+=' today-cell';
+    namazCells+=`<div class="${cls}">${d}</div>`;
+  }
+
+  // Stats for month
+  let namazDays=0,fullDays=0,qazaDays=0;
+  let totalAyat=0,totalTime=0;
+  let sadaqaTotal=0;
+  const monthStr=`${reportYear}-${String(reportMonth+1).padStart(2,'0')}`;
+
+  for(let d=1;d<=days;d++){
+    const dstr=`${reportYear}-${String(reportMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const date=new Date(reportYear,reportMonth,d);
+    if(isFuture(date)) break;
+    namazDays++;
+    const logs=S.namazLogs[dstr]||{};
+    const count=Object.keys(logs).length;
+    if(count===5) fullDays++;
+    if(Object.values(logs).includes('qaza')) qazaDays++;
+  }
+  S.quranLogs.filter(l=>l.date.startsWith(monthStr)).forEach(l=>{totalAyat+=l.ayat;totalTime+=l.time;});
+  S.sadaqaLogs.filter(l=>l.date.startsWith(monthStr)).forEach(l=>sadaqaTotal+=l.amount);
+
+  document.getElementById('reportContent').innerHTML=`
+    <div class="card-gold" style="margin-bottom:14px;">
+      <div class="section-title">🕌 নামাজের ক্যালেন্ডার</div>
+      <div class="cal-header">${DAY_LABELS.map(l=>`<div class="cal-day-lbl">${l}</div>`).join('')}</div>
+      <div class="cal-grid">${namazCells}</div>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;background:#22c55e"></div><span style="color:#64748b;font-size:10px;">৫ ওয়াক্ত পূর্ণ</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b"></div><span style="color:#64748b;font-size:10px;">৩-৪ ওয়াক্ত</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;background:#1e3a5f"></div><span style="color:#64748b;font-size:10px;">কম/শূন্য</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div class="ns-card"><div class="ns-val" style="color:#22c55e">${fullDays}</div><div class="ns-label">পূর্ণ নামাজের দিন</div></div>
+      <div class="ns-card"><div class="ns-val" style="color:#ef4444">${qazaDays}</div><div class="ns-label">কাজার দিন</div></div>
+      <div class="ns-card"><div class="ns-val" style="color:#c9a84c">${totalAyat}</div><div class="ns-label">আয়াত তিলাওয়াত</div></div>
+      <div class="ns-card"><div class="ns-val" style="color:#c9a84c">${totalTime} মি.</div><div class="ns-label">কুরআনের সময়</div></div>
+      <div class="ns-card" style="grid-column:1/-1;"><div class="ns-val" style="color:#22c55e">৳${sadaqaTotal.toLocaleString()}</div><div class="ns-label">এই মাসের সাদাকা</div></div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────
+const tn2=new Date();
+document.getElementById('headerDate').innerHTML=`${tn2.getDate()} ${BN_MONTHS_S[tn2.getMonth()]}<br/>${BN_DAYS[tn2.getDay()]}`;
+renderNamaz();
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
